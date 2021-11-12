@@ -111,7 +111,7 @@ class _WithdrawBankState extends State<WithdrawBank> {
             "carrier": widget.banks.name,
             "is_active": true,
             "is_completed": false,
-            "request_time": DateTime.now(),
+            "request_time": Timestamp.now(),
             "service": "deposit",
             "user": _auth!.uid,
             "users_location": GeoPoint(position.latitude, position.longitude)
