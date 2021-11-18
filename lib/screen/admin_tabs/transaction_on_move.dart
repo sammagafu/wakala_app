@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wakala_search_app/constants/constant.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wakala_search_app/screen/admin_tabs/message.dart';
 
 class TransactionOnMove extends StatefulWidget {
   static final String id = "transaction on move";
@@ -99,7 +100,11 @@ class _TransactionOnMoveState extends State<TransactionOnMove> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          launch("tel:+255788419991");
+                          print(widget.data);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Message(widget.data)));
                         },
                         child: CircleAvatar(
                           backgroundColor: kPrimaryColor,

@@ -150,13 +150,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               ),
                               OutlinedButton(
                                 onPressed: () {
-                                  print(_transactionData.id);
                                   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              TransactionOnMove(
-                                                  _transactionData.id)));
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TransactionOnMove(
+                                          _transactionData.id),
+                                    ),
+                                  );
                                 },
                                 style: TextButton.styleFrom(
                                     padding: EdgeInsets.all(8),
