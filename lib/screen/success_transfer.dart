@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 
 import 'package:wakala_search_app/constants/constant.dart';
+import 'package:wakala_search_app/screen/dashboard_user.dart';
 
 class SuccessScreen extends StatefulWidget {
   final data;
@@ -24,15 +27,17 @@ class _SuccessScreenState extends State<SuccessScreen> {
   );
   Completer<GoogleMapController> _controller = Completer();
 
-  @override
-  void initState() {
-    print(_transaction.doc(widget.data));
-    super.initState();
-  }
-
   Future<void> getMyLocation() async {
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
+  }
+
+  Future<void> cancelTransaction() {
+    return _transaction
+        .doc(widget.data)
+        .delete()
+        .then((value) => print("Trip Cancelled"))
+        .catchError((error) => print("Trip Cancelled: $error"));
   }
 
   @override
@@ -65,6 +70,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                     padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
                     child: Column(
                       children: [
+                        SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -106,7 +112,27 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             )
                           ],
                         ),
-                        ElevatedButton(onPressed: () {}, child: Text("Cancel"))
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.all(10),
+                          ),
+                          onPressed: () {
+                            cancelTransaction();
+                            Navigator.pushNamed(context, Dashboard.id);
+                          },
+                          child: Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("Cancell Transaction"),
+                                SizedBox(
+                                  width: 24,
+                                ),
+                                Icon(Icons.cancel)
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   );

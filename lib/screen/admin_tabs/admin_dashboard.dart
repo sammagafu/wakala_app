@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wakala_search_app/constants/constant.dart';
-import 'package:wakala_search_app/constants/constant.dart';
-import 'dart:async';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:wakala_search_app/screen/admin_tabs/transaction_on_move.dart';
+
+import '../dashboard_agent.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -16,19 +15,14 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
+  @override
   double _latitude = 0;
   double _longitude = 0;
-  late var myData;
-  late var _distanceInkm;
-  late Future<Position> _mylocation;
-  late var _receivedData;
-  late var _tripid;
+  late var requestingUser;
 
-  final Stream<QuerySnapshot> _trips = FirebaseFirestore.instance
-      .collection('trips')
-      .where("is_declined", isEqualTo: false)
-      .limit(1)
-      .snapshots();
+  final Stream<QuerySnapshot> _transaction = FirebaseFirestore.instance
+      .collection('transaction')
+      .snapshots(includeMetadataChanges: true);
 
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
@@ -66,184 +60,135 @@ class _AdminDashboardState extends State<AdminDashboard> {
         desiredAccuracy: LocationAccuracy.high);
   }
 
-  Completer<GoogleMapController> _controller = Completer();
-  final _auth = FirebaseAuth.instance.currentUser;
-  final _database = FirebaseFirestore.instance;
-  CollectionReference trips = FirebaseFirestore.instance.collection('trips');
-
-  Future<void> declineTrip(documentId) {
-    return trips
-        .doc(documentId.toString())
-        .update({'is_declined': true})
-        .then((value) => print("Trip Updated"))
-        .catchError((error) => print("Failed to update: $error"));
-  }
-
-  @override
-  void initState() {
-    _mylocation = _determinePosition();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: kPrimaryColor,
       body: StreamBuilder<QuerySnapshot>(
-        stream: _trips,
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Looking For a client"),
-                  LinearProgressIndicator()
-                ],
-              ),
-            );
-          } else {
-            _receivedData = snapshot.data!.docs.first.get("transaction");
-            _tripid = snapshot.data!.docs.first.id;
-            //TODO make queryset  from document
+          stream: _transaction,
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasData) {
+              var _transactionData = snapshot.data!.docs.first;
 
-            return Stack(
-              children: [
-                DraggableScrollableSheet(
-                    initialChildSize: 0.3,
-                    minChildSize: 0.13,
-                    maxChildSize: 0.9,
-                    builder: (BuildContext context,
-                        ScrollController scrollcontroller) {
-                      return Container(
-                        padding: EdgeInsets.fromLTRB(30, 15, 30, 15),
-                        color: kPrimaryColor,
-                        child: Column(
-                          children: [
-                            StreamBuilder<DocumentSnapshot>(
-                              stream: FirebaseFirestore.instance
-                                  .collection('transaction')
-                                  // .orderBy("request_time", descending: true)
-                                  .doc(_receivedData.toString())
-                                  .snapshots(),
-                              builder: (BuildContext context,
-                                  AsyncSnapshot<DocumentSnapshot> snapshot) {
-                                if (snapshot.hasError) {
-                                  return Text('Something went wrong');
-                                }
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Text("Loading");
-                                }
-                                return Column(
+              var _requestingUser = _transactionData["user"];
+              print(_requestingUser);
+              return DraggableScrollableSheet(
+                  initialChildSize: 0.45,
+                  minChildSize: 0.13,
+                  maxChildSize: 0.9,
+                  builder:
+                      (BuildContext buildContext, ScrollController controller) {
+                    return Container(
+                      color: kPrimaryColor,
+                      padding: EdgeInsets.fromLTRB(10, 20, 10, 20),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Transaction information",
+                            style: Theme.of(context).textTheme.bodyText1,
+                          ),
+                          SizedBox(
+                            height: 24,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Service provider"),
+                              Text(_transactionData["carrier"]),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 12,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Service"),
+                              Text(_transactionData["service"]),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 12,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Amount to ${_transactionData["service"]}"),
+                              Text(_transactionData["amount"]),
+                            ],
+                          ),
+                          Spacer(),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                      context, AgentDashboard.id);
+                                },
+                                style: TextButton.styleFrom(
+                                    backgroundColor: kErrorColor,
+                                    padding: EdgeInsets.all(8)),
+                                child: Row(
                                   children: [
-                                    Text("Transaction Details"),
-                                    SizedBox(
-                                      height: 18,
+                                    Text(
+                                      "Decline",
+                                      style:
+                                          Theme.of(context).textTheme.headline5,
                                     ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text("Service Provider"),
-                                        Text(snapshot.data!.get("carrier")),
-                                      ],
-                                    ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text("Service"),
-                                        Text(snapshot.data!.get("service")),
-                                      ],
-                                    ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                            "Amout to ${snapshot.data!.get("service")}"),
-                                        Text(snapshot.data!.get("amount")),
-                                      ],
-                                    ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {
-                                            print(_tripid);
-                                            declineTrip(_tripid);
-                                          },
-                                          style: TextButton.styleFrom(
-                                              backgroundColor: kErrorColor,
-                                              padding: EdgeInsets.all(8)),
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                "Decline",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .headline5,
-                                              ),
-                                              Padding(
-                                                  padding: EdgeInsets.fromLTRB(
-                                                      20, 0, 0, 0)),
-                                              Icon(
-                                                Icons.cancel,
-                                                color: kContentDarkTheme,
-                                                size: 18,
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        OutlinedButton(
-                                          onPressed: () {},
-                                          style: TextButton.styleFrom(
-                                              padding: EdgeInsets.all(8),
-                                              side: BorderSide(
-                                                  color: Colors.white)),
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                "Accept",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .headline5,
-                                              ),
-                                              Padding(
-                                                  padding: EdgeInsets.fromLTRB(
-                                                      20, 0, 0, 0)),
-                                              Icon(
-                                                Icons.done,
-                                                color: kContentDarkTheme,
-                                                size: 18,
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(20, 0, 0, 0)),
+                                    Icon(
+                                      Icons.cancel,
+                                      color: kContentDarkTheme,
+                                      size: 18,
+                                    )
                                   ],
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-              ],
-            );
-          }
-        },
-      ),
+                                ),
+                              ),
+                              OutlinedButton(
+                                onPressed: () {
+                                  print(_transactionData.id);
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              TransactionOnMove(
+                                                  _transactionData.id)));
+                                },
+                                style: TextButton.styleFrom(
+                                    padding: EdgeInsets.all(8),
+                                    side: BorderSide(color: Colors.white)),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      "Accept ",
+                                      style:
+                                          Theme.of(context).textTheme.headline5,
+                                    ),
+                                    Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(20, 0, 0, 0)),
+                                    Icon(
+                                      Icons.done,
+                                      color: kContentDarkTheme,
+                                      size: 18,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    );
+                  });
+            } else {
+              return CircularProgressIndicator();
+            }
+          }),
     );
   }
 }

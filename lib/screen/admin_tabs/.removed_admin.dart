@@ -252,3 +252,143 @@ return CircularProgressIndicator();
 }
 }),
 ));
+
+
+
+
+
+children: [
+DraggableScrollableSheet(
+initialChildSize: 0.3,
+minChildSize: 0.13,
+maxChildSize: 0.3,
+builder: (BuildContext context,
+ScrollController scrollcontroller) {
+return Container(
+padding: EdgeInsets.fromLTRB(30, 15, 30, 15),
+color: kPrimaryColor,
+child: Column(
+children: [
+StreamBuilder<DocumentSnapshot>(
+stream: FirebaseFirestore.instance
+    .collection('transaction')
+// .orderBy("request_time", descending: true)
+    .doc(_receivedData.toString())
+    .snapshots(),
+builder: (BuildContext context,
+AsyncSnapshot<DocumentSnapshot> snapshot) {
+if (snapshot.hasError) {
+return Text('Something went wrong');
+}
+if (snapshot.connectionState ==
+ConnectionState.waiting) {
+return Text("Loading");
+}
+return Column(
+children: [
+Text("Transaction Details"),
+SizedBox(
+height: 18,
+),
+Row(
+crossAxisAlignment:
+CrossAxisAlignment.start,
+mainAxisAlignment:
+MainAxisAlignment.spaceBetween,
+children: [
+Text("Service Provider"),
+Text(snapshot.data!.get("carrier")),
+],
+),
+Row(
+crossAxisAlignment:
+CrossAxisAlignment.start,
+mainAxisAlignment:
+MainAxisAlignment.spaceBetween,
+children: [
+Text("Service"),
+Text(snapshot.data!.get("service")),
+],
+),
+Row(
+crossAxisAlignment:
+CrossAxisAlignment.start,
+mainAxisAlignment:
+MainAxisAlignment.spaceBetween,
+children: [
+Text(
+"Amout to ${snapshot.data!.get("service")}"),
+Text(snapshot.data!.get("amount")),
+],
+),
+Row(
+crossAxisAlignment:
+CrossAxisAlignment.start,
+mainAxisAlignment:
+MainAxisAlignment.spaceBetween,
+children: [
+TextButton(
+onPressed: () {
+print(_tripid);
+declineTrip(_tripid);
+},
+style: TextButton.styleFrom(
+backgroundColor: kErrorColor,
+padding: EdgeInsets.all(8)),
+child: Row(
+children: [
+Text(
+"Decline",
+style: Theme.of(context)
+    .textTheme
+    .headline5,
+),
+Padding(
+padding: EdgeInsets.fromLTRB(
+20, 0, 0, 0)),
+Icon(
+Icons.cancel,
+color: kContentDarkTheme,
+size: 18,
+)
+],
+),
+),
+OutlinedButton(
+onPressed: () {},
+style: TextButton.styleFrom(
+padding: EdgeInsets.all(8),
+side: BorderSide(
+color: Colors.white)),
+child: Row(
+children: [
+Text(
+"Accept",
+style: Theme.of(context)
+    .textTheme
+    .headline5,
+),
+Padding(
+padding: EdgeInsets.fromLTRB(
+20, 0, 0, 0)),
+Icon(
+Icons.done,
+color: kContentDarkTheme,
+size: 18,
+)
+],
+),
+),
+],
+),
+],
+);
+},
+),
+],
+),
+);
+}),
+],
+
+    .collection("transaction")

@@ -9,6 +9,7 @@ class AdminSettings extends StatefulWidget {
 
 class _AdminSettingsState extends State<AdminSettings> {
   final bool _availability = true;
+  int _value = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class _AdminSettingsState extends State<AdminSettings> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Availability"),
+              Text("Offline"),
               Switch(
                 value: _availability,
                 onChanged: (value) {},
@@ -31,7 +32,40 @@ class _AdminSettingsState extends State<AdminSettings> {
                 activeColor: Colors.green,
               ),
             ],
-          )
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Distance"),
+              Slider(
+                min: 1,
+                max: 4,
+                activeColor: Colors.green,
+                inactiveColor: Colors.orange,
+                onChanged: (double newValue) {
+                  setState(() {
+                    _value = newValue.round();
+                  });
+                },
+                value: _value.toDouble(),
+              ),
+              Text("${_value.toString()} Km")
+            ],
+          ),
+          SizedBox(
+            height: 45,
+          ),
+          OutlinedButton(
+              onPressed: () {
+                // Navigator.pushNamed(context, Login.id);
+              },
+              style: TextButton.styleFrom(
+                  padding: EdgeInsets.all(20),
+                  side: BorderSide(color: Colors.white)),
+              child: Text(
+                "Save Settings",
+                style: Theme.of(context).textTheme.bodyText2,
+              )),
         ],
       ),
     );

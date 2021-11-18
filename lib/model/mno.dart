@@ -5,7 +5,7 @@ class Mno {
 }
 
 List<Mno> mno = [
-  Mno(name: 'Mpesa', url: "assets/images/mno/mpesa.png"),
+  Mno(name: 'M-pesa', url: "assets/images/mno/mpesa.png"),
   Mno(name: 'Tigo Pesa', url: "assets/images/mno/tigopesa.png"),
   Mno(name: 'Airtel Money', url: "assets/images/mno/airtel.png"),
   Mno(name: 'Halo Pesa', url: "assets/images/mno/halopesa.png"),
